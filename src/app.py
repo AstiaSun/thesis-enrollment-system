@@ -45,6 +45,23 @@ def get_current_user():
     return user
 
 
+def authenticated(allowed_roles=None):
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            user = get_current_user()
+            print(user)
+            if not user:
+                return redirect('/login')
+
+            if allowed_roles and user['role'] not in allowed_roles:
+                return redirect('/')
+
+            result = function(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
@@ -78,6 +95,7 @@ def loggedin():
 
 
 @app.route('/')
+@authenticated()
 def main():
     return 'IPO is coming...'
 
