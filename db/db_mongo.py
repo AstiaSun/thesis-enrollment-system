@@ -14,10 +14,14 @@ class DatabaseClient:
         query = {'email': email, 'password': password}
 
         user = self.users.find_one(query)
-        self.users_cache[user['id']] = user
+        if user:
+            self.users_cache[user['_id']] = user
         return user
 
     def user_check_session(self, session_id):
+        if not session_id:
+            return None
+
         if session_id in self.sessions_cache:
             user_id = self.sessions_cache[session_id]
             user = self.users_cache[user_id]
@@ -29,7 +33,7 @@ class DatabaseClient:
         return user
 
     def user_write_session(self, user_id, session_id):
-        query = {'user_id': user_id}
+        query = {'_id': user_id}
         update = {'$set': {'session_id': session_id}}
 
         self.users.find_one_and_update(query, update)
