@@ -1,12 +1,12 @@
 # thesis-enrollment-system
 
-### Models
+### Models:
 
-##### - Model for mongodb:
+Model for mongodb:
 
 ![Mongodb Model](mongodb_model.png)
 
 
-##### - Model for Neo4j:
+Model for Neo4j:
 
 ![Neo4j Model](neo4j_model.png)
