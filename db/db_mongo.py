@@ -1,10 +1,10 @@
 from pymongo import MongoClient
-import constants as c
+import settings as s
 
 
 class DatabaseClient:
-    def __init__(self, host=c.HOST, database=c.DATABASE, users_collection=c.USERS_COLLECTION):
-        self.db = MongoClient(host=c.HOST).get_database(database)
+    def __init__(self, host=s.MONGODB_HOSTNAME, database=s.MONGODB_NAME, users_collection=s.MONGODB_USERS_COLLECTION):
+        self.db = MongoClient(host=host).get_database(database)
         self.users = self.db.get_collection(users_collection)
 
         self.users_cache = dict()
@@ -35,4 +35,3 @@ class DatabaseClient:
         self.users.find_one_and_update(query, update)
         self.sessions_cache[session_id] = user_id
         return True
-
