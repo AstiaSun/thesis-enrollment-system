@@ -6,6 +6,8 @@
 
 ![Mongodb Model](mongodb_model.png)
 
+\* - object must exist only in Neo4j
+
 
 ##### 2. Model for Neo4j:
 
