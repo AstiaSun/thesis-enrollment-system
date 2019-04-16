@@ -1,0 +1,4 @@
+Flask==1.0.2
+Flask-Cors==3.0.7
+py2neo==4.2.0
+pymongo==3.7.2
