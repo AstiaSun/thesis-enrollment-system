@@ -6,10 +6,13 @@
 </head>
 <body>
     <h2>Login</h2>
+    {% if error %}
+        Your credentials are wrong!
+    {% endif %}
 	<form action="/login" method="post">
         <dl>
-            <dt>Username:</dt>
-            <dd><input type="text" name="username"></dd>
+            <dt>Email:</dt>
+            <dd><input type="text" name="email"></dd>
             <dt>Password:</dt>
             <dd><input type="password" name="password"></dd>
         </dl>
