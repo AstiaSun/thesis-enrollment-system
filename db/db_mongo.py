@@ -35,4 +35,3 @@ class DatabaseClient:
         self.users.find_one_and_update(query, update)
         self.sessions_cache[session_id] = user_id
         return True
-
