@@ -130,13 +130,7 @@ def add_thesis():
     description = request.json['description']
     year = request.json['year']
     difficulty = request.json['difficulty']
-    # status = request.form['status']
     tags = request.json['tags']
-    # score = request.form['score']
-    # student_info = request.form['student_info']
-    # creation_ts = request.form['creation_ts']
-    # student_enrol_ts = request.form['student_enrol_ts']
-    # update_ts = request.form['update_ts']
 
     user = get_current_user()
     instructor = Instructor(user['_id'])

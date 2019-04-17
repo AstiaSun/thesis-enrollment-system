@@ -139,6 +139,8 @@ class Thesis:
             rel = Relationship(thesis_node, Relations.THESIS_INSTRUCTOR,
                                instructor)
             client.graph.create(rel)
+
+            return thesis_node
         else:
             raise ObjectExistsException(self.node_type, self.to_dict())
 
@@ -189,7 +191,7 @@ class Instructor:
             raise ObjectExistsException(self.node_type, self.to_dict())
 
     def add_thesis(self, client: GraphDatabaseClient, thesis: Thesis, tags: str):
-        thesis.create(client, self.id)
+        thesis_node = thesis.create(client, self.id)
 
         if not tags:
             return
@@ -197,10 +199,10 @@ class Instructor:
         tags = [x.strip() for x in tags.lower().split(',')]
         for name in set(tags):
             tag = Node('Tag', name=name)
-            client.graph.merge(tag)
-            rel = Relationship(thesis, Relations.THESIS_TAG, tag)
+            client.graph.merge(tag, "Thesis", "name")
+            rel = Relationship(thesis_node, Relations.THESIS_TAG, tag)
             client.graph.create(rel)
-            rel = Relationship(tag, Relations.TAG_THESIS, thesis)
+            rel = Relationship(tag, Relations.TAG_THESIS, thesis_node)
             client.graph.create(rel)
 
 
