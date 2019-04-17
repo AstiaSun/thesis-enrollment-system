@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from py2neo import Graph, Node, Relationship
+from py2neo import Graph, Node, Relationship, NodeMatcher
 
 from db.exceptions import ObjectExistsException, IncorrectArgumentException
 from settings import NEO4J_HOSTNAME, NEO4J_USER, NEO4J_PORT, NEO4J_PASSWORD
@@ -15,12 +15,14 @@ class GraphDatabaseClient:
         self.graph = Graph(url, username=user, password=password)
 
     def find(self, node_type: str, properties: Optional[dict] = None):
+        matcher = NodeMatcher(self.graph)
         if properties is None:
-            return self.graph.match(node_type)
-        return self.graph.match(node_type, **properties)
+            return matcher.match(node_type)
+        return matcher.match(node_type, **properties)
 
-    def find_one(self, node_type, properties: Optional[dict] = None):
-        return self.graph.match(node_type, **properties).first()
+    def find_one(self, node_type, properties: dict):
+        matcher = NodeMatcher(self.graph)
+        return matcher.match(node_type, **properties).first()
 
 
 class ThesisStatus:
@@ -137,4 +139,5 @@ class Thesis:
             thesis_node = Node(self.node_type)
             thesis_node.update(self.to_dict())
             client.graph.create(thesis_node)
-        raise ObjectExistsException(self.node_type, self.to_dict())
+        else:
+            raise ObjectExistsException(self.node_type, self.to_dict())
