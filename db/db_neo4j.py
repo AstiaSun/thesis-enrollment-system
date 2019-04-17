@@ -35,6 +35,15 @@ class ThesisStatus:
     NOT_DEFENCED = 6
 
 
+class UniversityYear:
+    BACHELOR_FIRST = 1
+    BACHELOR_SECOND = 2
+    BACHELOR_THIRD = 3
+    BACHELOR_FOURTH = 4
+    MASTER_FIRST = 5
+    MASTER_SECOND = 6
+
+
 class Instructor:
     node_type = 'Instructor'
 
@@ -127,11 +136,11 @@ class Thesis:
         return fields_values
 
     def find(self, client: GraphDatabaseClient):
-        thesis = client.find_one(self.node_type, dict(thesis_name=self.name))
+        thesis = client.find_one(self.node_type, dict(name=self.name))
         return thesis
 
     def create(self, client: GraphDatabaseClient):
-        if not self.find(client):
+        if self.find(client) is None:
             thesis_node = Node(self.node_type)
             thesis_node.update(self.to_dict())
             client.graph.create(thesis_node)
