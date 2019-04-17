@@ -48,6 +48,9 @@ class UniversityYear:
 class Degree:
     BACHELOR = 'bachelor'
     MASTER = 'master'
+    DOCTOR = 'doctor'
+    CANDIDATE = 'candidate'
+    PROFESSOR = 'professor'
 
 
 class Relations:
@@ -55,6 +58,8 @@ class Relations:
     GROUP_DEPARTMENT = 'BELONGS_TO'
     THESIS_INSTRUCTOR = 'IS_SUPERVISED'
     INSTRUCTOR_THESIS = 'SUPERVISES'
+    DEPARTMENT_INSTRUCTOR = 'CONSISTS_OF'
+    INSTRUCTOR_DEPARTMENT = 'BELONGS_TO'
 
 
 class Instructor:
@@ -67,9 +72,32 @@ class Instructor:
         self.load = load
         self.classroom = classroom
 
+    def to_dict(self) -> dict:
+        fields_values = {key: value for key, value in vars(self).items()
+                         if key[:2] != '__' and key not in
+                         ['node_type', 'department_id'] and value}
+        return fields_values
+
     def find(self, client: GraphDatabaseClient):
         instructor = client.find_one(self.node_type, dict(id=self.id))
         return instructor
+
+    def create(self, client: GraphDatabaseClient):
+        params = {'department_id': self.department_id}
+        department = client.find_one(Department.node_type, params)
+        if department is None:
+            raise ObjectDoesNotExist(Department.node_type, params)
+        if self.find(client) is None:
+            node = Node(Instructor.node_type)
+            node.update(self.to_dict())
+            client.graph.create(node)
+            rel = Relationship(department, Relations.DEPARTMENT_INSTRUCTOR, node)
+            client.graph.create(rel)
+            rel = Relationship(node, Relations.INSTRUCTOR_DEPARTMENT, department)
+            client.graph.create(rel)
+        else:
+            raise ObjectExistsException(self.node_type, self.to_dict())
+
 
     def add_thesis(self, client: GraphDatabaseClient, thesis_name,
                    description, year, difficulty, tags):

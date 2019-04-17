@@ -3,7 +3,7 @@ import logging
 import pytest
 
 from db.db_neo4j import GraphDatabaseClient, Thesis, UniversityYear, \
-    Department, Group, Degree
+    Department, Group, Degree, Instructor
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
@@ -21,12 +21,19 @@ def database():
 
 
 def test_create_thesis(database):
-    thesis = Thesis('Create new features!@#$', 'Some fancy description',
-                    UniversityYear.BACHELOR_FOURTH, 4, 123)
+    thesis = Thesis('Create new features!@#$', 'Some fancy description', 123,
+                    UniversityYear.BACHELOR_FOURTH, 4)
     thesis.create(database)
     result = database.find(thesis.node_type, {'name': thesis.name})
     assert len(result) == 1
-    logging.info(f'Got thesis object: {result}')
+    logging.info(f'Got thesis object: {result.first()}')
+    assert result.first()
+
+
+def test_create_instructor(database):
+    i = Instructor(123, 123, Degree.PROFESSOR, 12, 213)
+    i.create(database)
+    result = database.find_one(i.node_type, i.to_dict())
     assert result
 
 
@@ -35,6 +42,12 @@ def test_create_department(database):
     d.create(database)
     result = database.find_one(d.node_type, d.to_dict())
     assert result
+
+
+def test_find_all(database):
+    result = database.find(Thesis.node_type)
+    for i in result:
+        print(i)
 
 
 def test_create_group(database):
