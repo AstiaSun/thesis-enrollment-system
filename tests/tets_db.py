@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 import pytest
 
@@ -21,24 +22,30 @@ def database():
 
 
 def test_create_thesis(database):
-    thesis = Thesis('Create new features!@#$', 'Some fancy description', 123,
+    department = Department('test_create_thesis', 'Cybernetics')
+    department.create(database)
+
+    instructor = Instructor(str(uuid.uuid4()), Degree.PROFESSOR, 12, '213')
+    instructor.create(database, department.department_id)
+
+    thesis = Thesis('Create new features!@#$', 'Some fancy description',
                     UniversityYear.BACHELOR_FOURTH, 4)
-    thesis.create(database)
-    result = database.find(thesis.node_type, {'name': thesis.name})
+    instructor.add_thesis(database, thesis, '')
+    result = database.find(thesis.node_type, {'thesis_name': thesis.thesis_name})
     assert len(result) == 1
     logging.info(f'Got thesis object: {result.first()}')
     assert result.first()
 
 
 def test_create_instructor(database):
-    i = Instructor(123, 123, Degree.PROFESSOR, 12, 213)
-    i.create(database)
+    i = Instructor(str(uuid.uuid4()) ,Degree.PROFESSOR, 12, '213')
+    i.create(database, '123')
     result = database.find_one(i.node_type, i.to_dict())
     assert result
 
 
 def test_create_department(database):
-    d = Department(123, 'Informatics', 'Cybernetics')
+    d = Department('Informatics', 'Cybernetics')
     d.create(database)
     result = database.find_one(d.node_type, d.to_dict())
     assert result
@@ -51,7 +58,7 @@ def test_find_all(database):
 
 
 def test_create_group(database):
-    g = Group('Super Team', 123, UniversityYear.BACHELOR_FOURTH, Degree.BACHELOR)
-    g.create(database)
+    g = Group('Super Team', UniversityYear.BACHELOR_FOURTH, Degree.BACHELOR)
+    g.create(database, '123')
     result = database.find_one(g.node_type, g.to_dict())
     assert result

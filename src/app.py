@@ -1,15 +1,13 @@
 import json
-import logging
-
-from flask import Flask, Response, request, render_template, session, redirect, url_for, abort
-from flask_cors import CORS
-
-from db.db_mongo import DatabaseClient
-
 import os
 import uuid
+
+from flask import Flask, request, render_template, session, redirect, abort
+from flask_cors import CORS
+
 import settings as s
-from db.db_neo4j import Instructor, GraphDatabaseClient
+from db.db_mongo import DatabaseClient
+from db.db_neo4j import Instructor, GraphDatabaseClient, Thesis
 
 template_folder = os.path.abspath('../templates')
 static_folder = os.path.abspath('../static')
@@ -124,10 +122,12 @@ def add_thesis():
     # student_enrol_ts = request.form['student_enrol_ts']
     # update_ts = request.form['update_ts']
 
-    Instructor.add_thesis(user['_id'], client=client, thesis_name=thesis_name, description=description, year=year,
-                          difficulty=difficulty, tags=tags)
-
-    return 'kek!!!'
+    user = get_current_user()
+    instructor = Instructor(user['_id'])
+    thesis = Thesis(thesis_name=thesis_name, description=description,
+                    year=year, difficulty=difficulty)
+    instructor.add_thesis(client, thesis, tags)
+    return 'Success'
 
 
 @app.route('/')

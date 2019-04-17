@@ -60,73 +60,14 @@ class Relations:
     INSTRUCTOR_THESIS = 'SUPERVISES'
     DEPARTMENT_INSTRUCTOR = 'CONSISTS_OF'
     INSTRUCTOR_DEPARTMENT = 'BELONGS_TO'
-
-
-class Instructor:
-    node_type = 'Instructor'
-
-    def __init__(self, id, department_id, degree, load, classroom):
-        self.id = id
-        self.department_id = department_id
-        self.degree = degree
-        self.load = load
-        self.classroom = classroom
-
-    def to_dict(self) -> dict:
-        fields_values = {key: value for key, value in vars(self).items()
-                         if key[:2] != '__' and key not in
-                         ['node_type', 'department_id'] and value}
-        return fields_values
-
-    def find(self, client: GraphDatabaseClient):
-        instructor = client.find_one(self.node_type, dict(id=self.id))
-        return instructor
-
-    def create(self, client: GraphDatabaseClient):
-        params = {'department_id': self.department_id}
-        department = client.find_one(Department.node_type, params)
-        if department is None:
-            raise ObjectDoesNotExist(Department.node_type, params)
-        if self.find(client) is None:
-            node = Node(Instructor.node_type)
-            node.update(self.to_dict())
-            client.graph.create(node)
-            rel = Relationship(department, Relations.DEPARTMENT_INSTRUCTOR, node)
-            client.graph.create(rel)
-            rel = Relationship(node, Relations.INSTRUCTOR_DEPARTMENT, department)
-            client.graph.create(rel)
-        else:
-            raise ObjectExistsException(self.node_type, self.to_dict())
-
-
-    def add_thesis(self, client: GraphDatabaseClient, thesis_name,
-                   description, year, difficulty, tags):
-        instructor = self.find(client)
-        thesis = Node(
-            'Thesis',
-            id=str(uuid.uuid4()),
-            instructor_id=instructor.id,
-            thesis_name=thesis_name,
-            description=description,
-            year=year,
-            difficulty=difficulty
-        )
-        rel = Relationship(instructor, 'SUPERVISES', thesis)
-        client.graph.create(rel)
-
-        tags = [x.strip() for x in tags.lower().split(',')]
-        for name in set(tags):
-            tag = Node('Tag', name=name)
-            client.graph.merge(tag)
-
-            rel = Relationship(tag, 'TAGGED', thesis)
-            client.graph.create(rel)
+    THESIS_TAG = 'TAGGED'
+    TAG_THESIS = 'TAGS'
 
 
 class Thesis:
     node_type = 'Thesis'
 
-    def __init__(self, thesis_name: str, description: str, instructor_id: int,
+    def __init__(self, thesis_name: str, description: str,
                  year: int, difficulty: int, tags: Optional[list] = None,
                  score: Optional[float] = None,
                  student_info: Optional[dict] = None,
@@ -151,9 +92,9 @@ class Thesis:
         :param student_id: id of a student im mongodb, allocated after the
         student has enrolled for the thesis
         """
+        self.id = str(uuid.uuid4())
         self.student_id = student_id
-        self.instructor_id = instructor_id
-        self.name = thesis_name
+        self.thesis_name = thesis_name
         self.description = description
         if 1 > year > 6:
             raise IncorrectArgumentException(
@@ -179,15 +120,15 @@ class Thesis:
         return fields_values
 
     def find(self, client: GraphDatabaseClient):
-        thesis = client.find_one(self.node_type, dict(name=self.name))
+        thesis = client.find_one(self.node_type, dict(thesis_name=self.thesis_name))
         return thesis
 
-    def create(self, client: GraphDatabaseClient):
+    def create(self, client: GraphDatabaseClient, instructor_id: str):
         instructor = client.find_one(Instructor.node_type,
-                                     {'id': self.instructor_id})
+                                     {'id': instructor_id})
         if instructor is None:
             raise ObjectDoesNotExist(Instructor.node_type,
-                                     {'id': self.instructor_id})
+                                     {'id': instructor_id})
         if self.find(client) is None:
             thesis_node = Node(self.node_type)
             thesis_node.update(self.to_dict())
@@ -202,12 +143,62 @@ class Thesis:
             raise ObjectExistsException(self.node_type, self.to_dict())
 
 
+class Instructor:
+    node_type = 'Instructor'
+
+    def __init__(self, id: str, degree: Optional[str] = None,
+                 load: Optional[int] = None, classroom: Optional[str] = None):
+        self.id = id
+        self.degree = degree
+        self.load = load
+        self.classroom = classroom
+
+    def to_dict(self) -> dict:
+        fields_values = {key: value for key, value in vars(self).items()
+                         if key[:2] != '__' and key != 'node_type' and value}
+        return fields_values
+
+    def find(self, client: GraphDatabaseClient):
+        instructor = client.find_one(self.node_type, dict(id=self.id))
+        return instructor
+
+    def create(self, client: GraphDatabaseClient, department_id: str):
+        params = {'department_id': department_id}
+        department = client.find_one(Department.node_type, params)
+        if department is None:
+            raise ObjectDoesNotExist(Department.node_type, params)
+        if self.find(client) is None:
+            node = Node(Instructor.node_type)
+            node.update(self.to_dict())
+            client.graph.create(node)
+            rel = Relationship(department, Relations.DEPARTMENT_INSTRUCTOR, node)
+            client.graph.create(rel)
+            rel = Relationship(node, Relations.INSTRUCTOR_DEPARTMENT, department)
+            client.graph.create(rel)
+        else:
+            raise ObjectExistsException(self.node_type, self.to_dict())
+
+    def add_thesis(self, client: GraphDatabaseClient, thesis: Thesis, tags: str):
+        thesis.create(client, self.id)
+
+        if not tags:
+            return
+
+        tags = [x.strip() for x in tags.lower().split(',')]
+        for name in set(tags):
+            tag = Node('Tag', name=name)
+            client.graph.merge(tag)
+            rel = Relationship(thesis, Relations.THESIS_TAG, tag)
+            client.graph.create(rel)
+            rel = Relationship(tag, Relations.TAG_THESIS, thesis)
+            client.graph.create(rel)
+
+
 class Group:
     node_type = 'Group'
 
-    def __init__(self, name: str, department_id: int, year: int, degree: str):
+    def __init__(self, name: str, year: int, degree: str):
         self.name = name
-        self.department_id = department_id
         print(1 > year > 6)
         if 1 > year > 6:
             raise IncorrectArgumentException(
@@ -225,8 +216,8 @@ class Group:
                          ['node_type', 'department_id'] and value}
         return fields_values
 
-    def create(self, client: GraphDatabaseClient):
-        params = {'department_id': self.department_id}
+    def create(self, client: GraphDatabaseClient, department_id: str):
+        params = {'department_id': department_id}
         department = client.find_one(Department.node_type, params)
         if department is None:
             raise ObjectDoesNotExist(Department.node_type, params)
@@ -245,10 +236,10 @@ class Group:
 class Department:
     node_type = 'Department'
 
-    def __init__(self, department_id: int, name: str, faculty: str, enrol_ts: Optional[int] = None,
+    def __init__(self, name: str, faculty: str, enrol_ts: Optional[int] = None,
                  predefence_ts: Optional[int] = None,
                  defence_ts: Optional[int] = None):
-        self.department_id = department_id
+        self.department_id = str(uuid.uuid4())
         self.name = name
         self.faculty = faculty
         if enrol_ts is not None:

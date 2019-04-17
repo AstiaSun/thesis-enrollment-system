@@ -1,5 +1,6 @@
-from pymongo import MongoClient
 from bson.objectid import ObjectId
+from pymongo import MongoClient
+
 import settings as s
 
 
@@ -11,7 +12,7 @@ class DatabaseClient:
         self.users_cache = dict()
         self.sessions_cache = dict()
 
-    def cache_user(self, user):
+    def cache_user(self, user) -> dict:
         user.pop('password', None)
         user.pop('session_id', None)
 
