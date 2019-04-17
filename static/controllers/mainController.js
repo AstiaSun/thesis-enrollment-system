@@ -78,6 +78,7 @@ angular.module('myApp')
         $http.post('/api/thesis/add', data).then(
             function(response){
                 console.log(response);
+                location.reload();
             },
             function(response){
                 console.log(response);
