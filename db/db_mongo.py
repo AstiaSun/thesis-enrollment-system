@@ -5,7 +5,8 @@ import settings as s
 
 
 class DatabaseClient:
-    def __init__(self, host=s.MONGODB_HOSTNAME, database=s.MONGODB_NAME, users_collection=s.MONGODB_USERS_COLLECTION):
+    def __init__(self, host=s.MONGODB_HOSTNAME, database=s.MONGODB_NAME,
+                 users_collection=s.MONGODB_USERS_COLLECTION):
         self.db = MongoClient(host=host).get_database(database)
         self.users = self.db.get_collection(users_collection)
 
@@ -64,7 +65,8 @@ class DatabaseClient:
         query = {'_id': ObjectId(user_id)}
         update = {'$set': {'thesis_id': thesis_id}}
 
-        user = self.users.find_one_and_update(query, update, return_document=ReturnDocument.AFTER)
+        user = self.users.find_one_and_update(
+            query, update, return_document=ReturnDocument.AFTER)
         self.cache_user(user)
         return True
 
@@ -72,6 +74,7 @@ class DatabaseClient:
         query = {'_id': ObjectId(user_id)}
         update = {'$set': params}
 
-        user = self.users.find_one_and_update(query, update, return_document=ReturnDocument.AFTER)
+        user = self.users.find_one_and_update(
+            query, update, return_document=ReturnDocument.AFTER)
         self.cache_user(user)
         return user

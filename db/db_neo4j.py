@@ -62,6 +62,8 @@ class Relations:
     INSTRUCTOR_DEPARTMENT = 'BELONGS_TO'
     THESIS_TAG = 'TAGGED'
     TAG_THESIS = 'TAGS'
+    THESIS_GROUP = 'BELONGS'
+    GROUP_THESIS = 'CONSISTS_OF'
 
 
 class Thesis:
@@ -145,14 +147,21 @@ class Thesis:
             raise ObjectExistsException(self.node_type, self.to_dict())
 
     @staticmethod
-    def thesis_enrol(client: GraphDatabaseClient, thesis_name: str, student_id):
+    def thesis_enrol(client: GraphDatabaseClient, thesis_name: str, student_id: str, group: dict):
         thesis = client.find_one(Thesis.node_type, {'thesis_name': thesis_name})
         if thesis is None:
             raise ObjectDoesNotExist(Thesis.node_type, {'thesis_name': thesis_name})
+        group = client.find_one(Group.node_type, group)
+        if not group:
+            raise ObjectDoesNotExist(Group.node_type, group)
         thesis['student_id'] = student_id
         thesis['student_enrol_ts'] = datetime.now().timestamp()
         thesis['update_ts'] = thesis['student_enrol_ts']
         client.graph.push(thesis)
+        rel = Relationship(thesis, Relations.THESIS_GROUP, group)
+        client.graph.create(rel)
+        rel = Relationship(group, Relations.GROUP_THESIS, thesis)
+        client.graph.create(rel)
 
 
 class Instructor:
@@ -268,6 +277,16 @@ class Group:
             client.graph.create(rel)
         else:
             raise ObjectExistsException(self.node_type, self.to_dict())
+
+    @staticmethod
+    def get_thesis(client: GraphDatabaseClient, group_id: str):
+        query = f'MATCH (g:Group' + \
+                ' {id: "' + group_id + '"})-' + \
+                f'[:{Relations.GROUP_DEPARTMENT}]->(:{Department.node_type})-' \
+                f'[:{Relations.DEPARTMENT_INSTRUCTOR}]->(:{Instructor.node_type})-' \
+                f'[:{Relations.INSTRUCTOR_THESIS}]->(t: Thesis) RETURN t'
+        data = client.graph.run(query).data()
+        return list(map(lambda x: dict(x['t']), data))
 
 
 class Department:

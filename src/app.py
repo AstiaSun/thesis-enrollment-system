@@ -7,7 +7,7 @@ from flask_cors import CORS
 
 import settings as s
 from db.db_mongo import DatabaseClient
-from db.db_neo4j import Instructor, GraphDatabaseClient, Thesis
+from db.db_neo4j import Instructor, GraphDatabaseClient, Thesis, Group
 
 template_folder = os.path.abspath('../templates')
 static_folder = os.path.abspath('../static')
@@ -108,7 +108,7 @@ def api_thesis_all():
 
     result = []
 
-    query_result = client.find(Thesis.node_type)
+    query_result = Group.get_thesis(client, user['group_id'])
     for i in query_result:
         result.append(i)
 
@@ -130,7 +130,7 @@ def enrol_thesis():
     thesis_name = request.json['thesis_name']
 
     db.user_enrol_thesis(user['_id'], thesis_name)
-    Thesis.thesis_enrol(client, thesis_name, user['_id'])
+    Thesis.thesis_enrol(client, thesis_name, user['_id'], {'id': user['group_id']})
     user['thesis_id'] = thesis_name
     return json.dumps(user)
 
@@ -217,7 +217,6 @@ def add_thesis():
     difficulty = request.json['difficulty']
     tags = request.json['tags']
 
-    user = get_current_user()
     instructor = Instructor(user['_id'])
     thesis = Thesis(thesis_name=thesis_name, description=description,
                     year=year, difficulty=difficulty)
