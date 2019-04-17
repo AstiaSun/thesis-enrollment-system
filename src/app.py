@@ -131,7 +131,7 @@ def add_thesis():
     year = request.json['year']
     difficulty = request.json['difficulty']
     # status = request.form['status']
-    tags = request.json['tags'].split(',')
+    tags = request.json['tags']
     # score = request.form['score']
     # student_info = request.form['student_info']
     # creation_ts = request.form['creation_ts']
