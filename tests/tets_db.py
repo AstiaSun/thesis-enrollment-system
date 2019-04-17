@@ -69,3 +69,24 @@ def test_create_group(database):
 def test_enrol(database):
     name = 'Lorem Ipsum'
     Thesis.thesis_enrol(database, name, '5cb673e70d34e12dab8cd206')
+
+
+def test_delete(database):
+    result = database.find(Thesis.node_type, {'name': '*'})
+    database.graph.delete(result)
+
+
+def test_get_thesis_per_instructor(database):
+    i = Instructor('5cb673e70d34e12dab8cd206')
+    print(i.get_thesis(database))
+
+
+def test_delete_thesis(database):
+    i = Instructor('5cb673e70d34e12dab8cd206')
+    thesis = Thesis('to delete thesis test', 'Some fancy description',
+                    UniversityYear.BACHELOR_FOURTH, 4)
+    i.add_thesis(database, thesis, '')
+    assert database.find_one(Thesis.node_type, {'thesis_name': 'to delete thesis test'})
+    i.delete_thesis(database, 'to delete thesis test')
+    assert not database.find_one(Thesis.node_type,
+                             {'thesis_name': 'to delete thesis test'})

@@ -205,6 +205,25 @@ class Instructor:
             rel = Relationship(tag, Relations.TAG_THESIS, thesis_node)
             client.graph.create(rel)
 
+    def get_thesis(self, client: GraphDatabaseClient):
+        """
+        get all thesis for currect instructor
+        :return: list of thesis
+        """
+        query = f'MATCH (:{Instructor.node_type})-' \
+            f'[:{Relations.INSTRUCTOR_THESIS}]->(t:{Thesis.node_type}) ' \
+            f'RETURN t'
+        return client.graph.run(query).data()
+
+    def delete_thesis(self, client: GraphDatabaseClient, thesis_name: str):
+        """
+        delete thesis by its name
+        """
+        query = f'MATCH (a: {Thesis.node_type}' + '{thesis_name: "' + \
+                thesis_name + '"}) RETURN a'
+        thesis_node = client.graph.run(query).to_subgraph()
+        client.graph.delete(thesis_node)
+
 
 class Group:
     node_type = 'Group'
