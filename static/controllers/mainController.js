@@ -3,7 +3,7 @@ angular.module('myApp')
   $scope.showInstructor = $rootScope.user.role == 'instructor';
   $scope.showStudent = $rootScope.user.role == 'student';
   $scope.showStudentThesis = $scope.showStudent && $rootScope.user.thesis_id;
-  $scope.showStudentNoThesis = !$scope.showStudentThesis;
+  $scope.showStudentNoThesis = $scope.showStudent && !$rootScope.user.thesis_id;
 
   $scope.nonstop_thesis = [];
 
@@ -28,7 +28,7 @@ angular.module('myApp')
             $scope.showInstructor = $rootScope.user.role == 'instructor';
             $scope.showStudent = $rootScope.user.role == 'student';
             $scope.showStudentThesis = $scope.showStudent && $rootScope.user.thesis_id;
-            $scope.showStudentNoThesis = !$scope.showStudentThesis;
+            $scope.showStudentNoThesis = $scope.showStudent && !$rootScope.user.thesis_id;
         },
         function(){
             console.log('error getting user data');
@@ -45,8 +45,8 @@ angular.module('myApp')
         var data = {
             thesis_name: $scope.thesis_name,
             description: $scope.description,
-            year: $scope.year,
-            difficulty: $scope.difficulty,
+            year: parseInt($scope.year),
+            difficulty: parseInt($scope.difficulty),
             tags: $scope.tags
         }
         $http.post('/api/thesis/add', data).then(
