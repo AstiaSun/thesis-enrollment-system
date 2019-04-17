@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 import settings as s
 
 
@@ -43,7 +44,7 @@ class DatabaseClient:
         return user
 
     def user_write_session(self, user_id, session_id):
-        query = {'_id': user_id}
+        query = {'_id': ObjectId(user_id)}
         update = {'$set': {'session_id': session_id}}
 
         self.users.find_one_and_update(query, update)
