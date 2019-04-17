@@ -1,0 +1,10 @@
+<div ng-show="{{global.user.role == 'instructor'}}">
+    <form ng-submit="onSubmit()">
+        Thesis name: <input type="text" ng-model="thesis_name"><br/>
+        Description: <input type="text" ng-model="description"><br/>
+        Year: <input type="text" ng-model="year"><br/>
+        Difficulty: <input type="text" ng-model="difficulty"><br/>
+        Tags: <input type="text" ng-model="tags"><br/>
+        <input type="submit" value="Submit">
+    </form>
+</div>

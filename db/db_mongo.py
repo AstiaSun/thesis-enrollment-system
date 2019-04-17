@@ -11,8 +11,8 @@ class DatabaseClient:
         self.sessions_cache = dict()
 
     def cache_user(self, user):
-        del user['password']
-        del user['session_id']
+        user.pop('password', None)
+        user.pop('session_id', None)
 
         user['_id'] = str(user['_id'])
 

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My IPO website</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.8/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.8/angular-route.min.js"></script>
+</head>
+<body ng-app="myApp">
+<script>
+    var app = angular.module('myApp',['ngRoute']);
+app.run(['$rootScope', '$http', function($rootScope, $http) {
+    $http.get('/api/user').then(
+        function(response){
+            var data = response.data;
+            $rootScope.user = data;
+        },
+        function(){
+            console.log('error getting user data');
+        }
+    );
+}]);
+app.config(function($routeProvider){
+  $routeProvider
+  .when('/', {
+    templateUrl: 'static/main.html',
+    controller: 'MainController'
+  })
+});
+</script>
+<script src="static/controllers/mainController.js"></script>
+<script src="static/controllers/headerController.js"></script>
+
+{% raw %}
+
+<div> <!--ng-controller="HeaderController as header"-->
+    {{user}}<br/>
+    Funny header end.
+</div>
+
+<br/>
+
+<ng-view></ng-view>
+
+{% endraw %}
+</body>
+</html>
