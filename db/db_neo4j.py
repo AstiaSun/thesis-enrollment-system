@@ -1,7 +1,8 @@
+import uuid
 from datetime import datetime
 from typing import Optional
 
-from py2neo import Graph, Node, NodeMatcher
+from py2neo import Graph, Node, NodeMatcher, Relationship
 
 from db.exceptions import ObjectExistsException, IncorrectArgumentException
 from settings import NEO4J_HOSTNAME, NEO4J_USER, NEO4J_PORT, NEO4J_PASSWORD
@@ -10,6 +11,45 @@ url = f'bolt://{NEO4J_HOSTNAME}:{NEO4J_PORT}'
 
 graph = Graph(url + f'/db/data/', username=NEO4J_USER,
               password=NEO4J_PASSWORD)
+
+
+class Instructor:
+    def __init__(self, id, department_id, degree, load, classroom):
+        self.id = id
+        self.department_id = department_id
+        self.degree = degree
+        self.load = load
+        self.classroom = classroom
+
+    def find(self, id):
+        matcher = NodeMatcher(graph)
+        instructor = matcher.match('Instructor', id=id)
+        return instructor
+
+    def add_thesis(self, thesis_name, description, creation_ts, year, difficulty, requirements, status, tags):
+        instructor = self.find()
+        thesis = Node(
+            'Thesis',
+            id=str(uuid.uuid4()),
+            instructor_id=instructor.id,
+            thesis_name=thesis_name,
+            description=description,
+            creation_ts=creation_ts,
+            year=year,
+            difficulty=difficulty,
+            requirements=requirements,
+            status=status
+        )
+        rel = Relationship(instructor, 'SUPERVISES', thesis)
+        graph.create(rel)
+
+        tags = [x.strip() for x in tags.lower().split(',')]
+        for name in set(tags):
+            tag = Node('Tag', name=name)
+            graph.merge(tag)
+
+            rel = Relationship(tag, 'TAGGED', thesis)
+            graph.create(rel)
 
 
 class Thesis:
