@@ -96,11 +96,11 @@ class Thesis:
         self.student_id = student_id
         self.thesis_name = thesis_name
         self.description = description
-        if 1 > year > 6:
+        if 1 > year or year > 6:
             raise IncorrectArgumentException(
                 'Topic: "year" field must be in range [1, 6]')
         self.year = year
-        if 1 > difficulty > 5:
+        if 1 > difficulty or difficulty > 5:
             raise IncorrectArgumentException(
                 'Thesis: "difficulty" field must be in range [1, 5]')
         self.difficulty = difficulty
