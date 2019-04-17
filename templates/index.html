@@ -15,6 +15,7 @@ app.run(['$rootScope', '$http', function($rootScope, $http) {
         function(response){
             var data = response.data;
             $rootScope.user = data;
+            console.log(data);
         },
         function(){
             console.log('error getting user data');
@@ -35,10 +36,10 @@ app.config(function($routeProvider){
 {% raw %}
 
 <div> <!--ng-controller="HeaderController as header"-->
-    {{user}}<br/>
-    Funny header end.
+    <br/>
+    <b>&nbsp;&nbsp;{{user.first_name}} {{user.last_name}}</b><span style="float:right;"><a href="/logout">Logout</a>&nbsp;&nbsp;</span>
+<hr/>
 </div>
-
 <br/>
 
 <ng-view></ng-view>

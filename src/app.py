@@ -48,44 +48,6 @@ def get_current_user():
     return user
 
 
-def authenticated(allowed_roles=None):
-    def decorator(function):
-        def wrapper(*args, **kwargs):
-            user = get_current_user()
-
-            if not user:
-                return redirect('/login')
-
-            if allowed_roles and user['role'] not in allowed_roles:
-                return redirect('/')
-
-            result = function(*args, **kwargs)
-            return result
-
-        return wrapper
-
-    return decorator
-
-
-def api_authenticated(allowed_roles=None):
-    def decorator(function):
-        def wrapper2(*args, **kwargs):
-            user = get_current_user()
-
-            if not user:
-                return abort(403)
-
-            if allowed_roles and user['role'] not in allowed_roles:
-                return abort(403)
-
-            result = function(*args, **kwargs)
-            return result
-
-        return wrapper2
-
-    return decorator
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
@@ -109,6 +71,17 @@ def login():
             return render_template('login.html', error=True)
 
 
+@app.route('/logout')
+def logout():
+    user = get_current_user()
+
+    if not user:
+        return redirect('/login')
+
+    db.user_write_session(user['_id'], '')
+    return redirect('/')
+
+
 @app.route('/loggedin')
 def loggedin():
     user = get_current_user()
@@ -118,16 +91,27 @@ def loggedin():
     return 'Not authenticated'
 
 
-@api_authenticated()
 @app.route('/api/user')
 def api_user():
     user = get_current_user()
+
+    if not user:
+        return abort(403)
+
     return json.dumps(user)
 
 
-@api_authenticated(allowed_roles=['instructor'])
 @app.route('/api/thesis/add', methods=['POST'])
 def add_thesis():
+    allowed_roles = ['instructor']
+    user = get_current_user()
+
+    if not user:
+        return abort(403)
+
+    if allowed_roles and user['role'] not in allowed_roles:
+        return abort(403)
+
     thesis_name = request.json['thesis_name']
     description = request.json['description']
     year = request.json['year']
@@ -140,16 +124,18 @@ def add_thesis():
     # student_enrol_ts = request.form['student_enrol_ts']
     # update_ts = request.form['update_ts']
 
-    user = get_current_user()
-    Instructor.add_thesis(user['_id'], client=client, thesis_name=thesis_name, description=description, year=year, difficulty=difficulty, tags=tags)
+    Instructor.add_thesis(user['_id'], client=client, thesis_name=thesis_name, description=description, year=year,
+                          difficulty=difficulty, tags=tags)
 
     return 'kek!!!'
 
 
 @app.route('/')
-@authenticated()
 def main():
     user = get_current_user()
+
+    if not user:
+        return redirect('/login')
 
     return render_template('index.html', user=user)
 

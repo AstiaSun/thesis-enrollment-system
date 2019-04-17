@@ -48,5 +48,13 @@ class DatabaseClient:
         update = {'$set': {'session_id': session_id}}
 
         self.users.find_one_and_update(query, update)
-        self.sessions_cache[session_id] = user_id
+        if session_id:
+            self.sessions_cache[session_id] = user_id
+        else:
+            keys_to_delete = []
+            for key, value in self.sessions_cache.items():
+                if value == user_id:
+                    keys_to_delete.append(key)
+            for key in keys_to_delete:
+                del self.sessions_cache[key]
         return True
