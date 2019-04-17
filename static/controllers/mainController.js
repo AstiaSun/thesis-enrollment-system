@@ -2,10 +2,12 @@ angular.module('myApp')
   .controller('MainController', ['$scope', '$rootScope', '$http', function($scope, $rootScope, $http) {
     $scope.global = $rootScope;
 
+    $scope.currentYear = new Date().getFullYear();
+
     $scope.thesis_name = '';
     $scope.description = '';
-    $scope.year = '';
-    $scope.difficulty = '';
+    $scope.year = $scope.currentYear + '';
+    $scope.difficulty = '1';
     $scope.tags = '';
 
     $scope.onSubmit = function(){

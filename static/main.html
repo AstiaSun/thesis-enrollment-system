@@ -1,10 +1,35 @@
 <div ng-show="{{global.user.role == 'instructor'}}">
-    <form ng-submit="onSubmit()">
-        Thesis name: <input type="text" ng-model="thesis_name"><br/>
-        Description: <input type="text" ng-model="description"><br/>
-        Year: <input type="text" ng-model="year"><br/>
-        Difficulty: <input type="text" ng-model="difficulty"><br/>
-        Tags: <input type="text" ng-model="tags"><br/>
-        <input type="submit" value="Submit">
+    <form class="col-sm-4">
+      <div class="form-group">
+        <label for="thesis_name">Thesis name:</label>
+        <input ng-model="thesis_name" type="text" class="form-control" id="thesis_name" placeholder="How to conquer the world?">
+      </div>
+      <div class="form-group">
+        <label for="description">Description:</label>
+        <input ng-model="description" type="text" class="form-control" id="description" placeholder="Well, just use python 3.x, tesseract and google api">
+      </div>
+      <div class="form-group">
+        <label for="year">Year:</label>
+        <select ng-model="year" class="form-control" id="year">
+          <option>{{currentYear}}</option>
+          <option>{{currentYear+1}}</option>
+          <option>{{currentYear+2}}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="difficulty">Difficulty:</label>
+        <select ng-model="difficulty" class="form-control" id="difficulty">
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+          <option>4</option>
+          <option>5</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="tags">Tags:</label>
+        <input ng-model="tags" type="text" class="form-control" id="tags" placeholder="ml, data science, smoothie">
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 </div>
