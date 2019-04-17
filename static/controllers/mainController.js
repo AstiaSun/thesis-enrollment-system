@@ -1,6 +1,25 @@
 angular.module('myApp')
   .controller('MainController', ['$scope', '$rootScope', '$http', function($scope, $rootScope, $http) {
   $scope.showInstructor = $rootScope.user.role == 'instructor';
+  $scope.showStudent = $rootScope.user.role == 'student';
+  $scope.showStudentThesis = $scope.showStudent && $rootScope.user.thesis_id;
+  $scope.showStudentNoThesis = !$scope.showStudentThesis;
+
+  $scope.nonstop_thesis = [];
+
+  if($scope.showStudentNoThesis){
+    $http.get('/api/thesis/all').then(
+        function(response){
+            var data = response.data;
+            $scope.nonstop_thesis = data;
+            console.log(data);
+        },
+        function(){
+            console.log('error getting thesis data');
+        }
+    );
+  }
+
   $http.get('/api/user').then(
         function(response){
             var data = response.data;
@@ -13,15 +32,13 @@ angular.module('myApp')
         }
     );
 
-    $scope.currentYear = new Date().getFullYear();
-
     $scope.thesis_name = '';
     $scope.description = '';
-    $scope.year = $scope.currentYear + '';
+    $scope.year = '1';
     $scope.difficulty = '1';
     $scope.tags = '';
 
-    $scope.onSubmit = function(){
+    $scope.onSubmitAddThesis = function(){
         var data = {
             thesis_name: $scope.thesis_name,
             description: $scope.description,

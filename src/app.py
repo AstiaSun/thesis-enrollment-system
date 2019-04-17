@@ -99,6 +99,22 @@ def api_user():
     return json.dumps(user)
 
 
+@app.route('/api/thesis/all')
+def api_thesis_all():
+    user = get_current_user()
+
+    if not user:
+        return abort(403)
+
+    result = []
+
+    query_result = client.find(Thesis.node_type)
+    for i in query_result:
+        result.append(i)
+
+    return json.dumps(result)
+
+
 @app.route('/api/thesis/add', methods=['POST'])
 def add_thesis():
     allowed_roles = ['instructor']

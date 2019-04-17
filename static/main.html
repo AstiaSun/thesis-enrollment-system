@@ -1,5 +1,5 @@
 <div ng-show="{{showInstructor}}">
-    <form class="col-sm-4">
+    <form class="col-sm-4" ng-submit="onSubmitAddThesis()">
       <div class="form-group">
         <label for="thesis_name">Thesis name:</label>
         <input ng-model="thesis_name" type="text" class="form-control" id="thesis_name" placeholder="How to conquer the world?">
@@ -12,9 +12,12 @@
       <div class="form-group">
         <label for="year">Year:</label>
         <select ng-model="year" class="form-control" id="year">
-          <option>{{currentYear}}</option>
-          <option>{{currentYear+1}}</option>
-          <option>{{currentYear+2}}</option>
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+          <option>4</option>
+          <option>5</option>
+          <option>6</option>
         </select>
       </div>
       <div class="form-group">
@@ -33,4 +36,25 @@
       </div>
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
+</div>
+<div ng-show="{{showStudentNoThesis}}">
+  <div class="card-columns">
+      <div class="card" ng-repeat="caffein in nonstop_thesis">
+          <div class="card-body">
+            <h5 class="card-title">{{caffein.thesis_name}}</h5>
+            <p class="card-text">
+                <span style="color:green;">Складність: {{caffein.difficulty}}</span><br/>
+                <span>Рік: {{caffein.year}}</span><br/>
+                {{caffein.description}}
+            </p>
+          </div>
+          <div class="card-footer">
+            <p class="card-text"><small class="text-muted">{{caffein.creation_ts*1000 | date: 'dd.MM.yyyy'}} |
+                <a href="https://www.google.com/maps/search/{{caffein.univ_address}}" target="_blank">записатись</a></small></p>
+          </div>
+      </div>
+  </div>
+</div>
+<div ng-show="{{showStudentThesis}}">
+
 </div>
