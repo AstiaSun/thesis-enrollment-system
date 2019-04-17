@@ -220,8 +220,12 @@ class Instructor:
         delete thesis by its name
         """
         query = f'MATCH (a: {Thesis.node_type}' + '{thesis_name: "' + \
-                thesis_name + '"}) RETURN a'
+                thesis_name + '"})' + f'-[:{Relations.THESIS_INSTRUCTOR}]->(i:Instructor ' + \
+                '{id: "' + self.id + '"}) RETURN a'
         thesis_node = client.graph.run(query).to_subgraph()
+        if thesis_node is None:
+            raise ObjectDoesNotExist(
+                Thesis.node_type, {'thesis_name': thesis_node, 'instructor_id': self.id})
         client.graph.delete(thesis_node)
 
 
