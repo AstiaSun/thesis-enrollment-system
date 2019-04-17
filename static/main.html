@@ -43,7 +43,7 @@
           <div class="card-body">
             <h5 class="card-title">{{caffein.thesis_name}}</h5>
             <p class="card-text">
-                <span style="color:green;">Складність: {{caffein.difficulty}}</span><br/>
+                <span style="color:{{caffein.difficulty>3?'orange':'green'}};">Складність: {{caffein.difficulty}}</span><br/>
                 <span>Рік: {{caffein.year}}</span><br/>
                 {{caffein.description}}
             </p>
@@ -56,5 +56,5 @@
   </div>
 </div>
 <div ng-show="{{showStudentThesis}}">
-
+    You are enrolled in the thesis.
 </div>
