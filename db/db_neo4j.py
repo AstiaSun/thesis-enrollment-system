@@ -2,18 +2,40 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from py2neo import Graph, Node, NodeMatcher, Relationship
+from py2neo import Graph, Node, Relationship
 
 from db.exceptions import ObjectExistsException, IncorrectArgumentException
 from settings import NEO4J_HOSTNAME, NEO4J_USER, NEO4J_PORT, NEO4J_PASSWORD
 
-url = f'bolt://{NEO4J_HOSTNAME}:{NEO4J_PORT}'
 
-graph = Graph(url + f'/db/data/', username=NEO4J_USER,
-              password=NEO4J_PASSWORD)
+class GraphDatabaseClient:
+    def __init__(self, hostname: str = NEO4J_HOSTNAME, port: int = NEO4J_PORT,
+                 user: str = NEO4J_USER, password: str = NEO4J_PASSWORD):
+        url = f'bolt://{hostname}:{port}/db/data/'
+        self.graph = Graph(url, username=user, password=password)
+
+    def find(self, node_type: str, properties: Optional[dict] = None):
+        if properties is None:
+            return self.graph.match(node_type)
+        return self.graph.match(node_type, **properties)
+
+    def find_one(self, node_type, properties: Optional[dict] = None):
+        return self.graph.match(node_type, **properties).first()
+
+
+class ThesisStatus:
+    CREATED = 0
+    CANCELED = 1
+    ENROLLED = 2
+    APPROVED = 3
+    VERIFIED = 4
+    DEFENCED = 5
+    NOT_DEFENCED = 6
 
 
 class Instructor:
+    node_type = 'Instructor'
+
     def __init__(self, id, department_id, degree, load, classroom):
         self.id = id
         self.department_id = department_id
@@ -21,13 +43,14 @@ class Instructor:
         self.load = load
         self.classroom = classroom
 
-    def find(self, id):
-        matcher = NodeMatcher(graph)
-        instructor = matcher.match('Instructor', id=id)
+    def find(self, client: GraphDatabaseClient):
+        instructor = client.find_one(self.node_type, dict(id=self.id))
         return instructor
 
-    def add_thesis(self, thesis_name, description, creation_ts, year, difficulty, requirements, status, tags):
-        instructor = self.find()
+    def add_thesis(self, client: GraphDatabaseClient, thesis_name,
+                   description, creation_ts, year, difficulty, requirements,
+                   status, tags):
+        instructor = self.find(client)
         thesis = Node(
             'Thesis',
             id=str(uuid.uuid4()),
@@ -41,21 +64,23 @@ class Instructor:
             status=status
         )
         rel = Relationship(instructor, 'SUPERVISES', thesis)
-        graph.create(rel)
+        client.graph.create(rel)
 
         tags = [x.strip() for x in tags.lower().split(',')]
         for name in set(tags):
             tag = Node('Tag', name=name)
-            graph.merge(tag)
+            client.graph.merge(tag)
 
             rel = Relationship(tag, 'TAGGED', thesis)
-            graph.create(rel)
+            client.graph.create(rel)
 
 
 class Thesis:
+    node_type = 'Thesis'
+
     def __init__(self, thesis_name: str, description: str,
-                 year: int, difficulty: int, status: int,
-                 tags: Optional[dict] = None, score: Optional[float] = None,
+                 year: int, difficulty: int, tags: Optional[list] = None,
+                 score: Optional[float] = None,
                  student_info: Optional[dict] = None,
                  creation_ts: Optional[float] = None,
                  student_enrol_ts: Optional[float] = None,
@@ -63,12 +88,11 @@ class Thesis:
                  student_id: Optional[str] = None):
         """
         :param thesis_name: key value for object - a topic of thesis
-        :param description: detai;ed description of a thesis
+        :param description: detailed description of a thesis
         :param year: in range from 1 to 6 where 1- is a first year of
         a bachelor degree, 6 - last year of a master degree
         :param difficulty: value from 1 to 5 where 1 is very easy, 5 -
         very difficult
-        :param status: status of the topic, 0 is created
         :param tags: dict of tags or requirements of a specific object
         :param student_info: information about the student, allocated after
         the topic has been written
@@ -97,22 +121,20 @@ class Thesis:
             if not creation_ts else creation_ts
         self.update_ts = self.creation_ts if update_ts is None else update_ts
         self.student_enrol_ts = student_enrol_ts
-        self.status = status
-        self.node_type = 'Thesis'
+        self.status = ThesisStatus.CREATED
 
-    def _to_dict(self) -> dict:
+    def to_dict(self) -> dict:
         fields_values = {key: value for key, value in vars(self).items()
                          if key[:2] != '__' and key != 'node_type' and value}
         return fields_values
 
-    def find(self):
-        matcher = NodeMatcher(graph)
-        thesis = matcher.match(self.node_type, thesis_name=self.name).first()
+    def find(self, client: GraphDatabaseClient):
+        thesis = client.find_one(self.node_type, dict(thesis_name=self.name))
         return thesis
 
-    def create(self):
-        if not self.find():
-            thesis_node = Node()
-            thesis_node.update(self._to_dict())
-            graph.create(thesis_node)
-        raise ObjectExistsException(self.node_type, self._to_dict())
+    def create(self, client: GraphDatabaseClient):
+        if not self.find(client):
+            thesis_node = Node(self.node_type)
+            thesis_node.update(self.to_dict())
+            client.graph.create(thesis_node)
+        raise ObjectExistsException(self.node_type, self.to_dict())
