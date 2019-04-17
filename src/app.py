@@ -115,6 +115,26 @@ def api_thesis_all():
     return json.dumps(result)
 
 
+@app.route('/api/thesis/enrol', methods=['POST'])
+def enrol_thesis():
+    allowed_roles = ['student']
+    user = get_current_user()
+
+    if not user or user.get('thesis_id'):
+        return abort(403)
+
+    if allowed_roles and user['role'] not in allowed_roles:
+        return abort(403)
+
+    print(request.json)
+    thesis_name = request.json['thesis_name']
+
+    db.user_enrol_thesis(user['_id'], thesis_name)
+    Thesis.thesis_enrol(client, thesis_name, user['_id'])
+    user['thesis_id'] = thesis_name
+    return json.dumps(user)
+
+
 @app.route('/api/thesis/add', methods=['POST'])
 def add_thesis():
     allowed_roles = ['instructor']

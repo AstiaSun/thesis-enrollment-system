@@ -1,4 +1,6 @@
-<div ng-show="{{showInstructor}}">
+
+<div ng-show="showInstructor">
+    {{global.user}} {{showInstructor}} {{showStudent}} {{showStudentNoThesis}} {{showStudentThesis}}
     <form class="col-sm-4" ng-submit="onSubmitAddThesis()">
       <div class="form-group">
         <label for="thesis_name">Thesis name:</label>
@@ -37,7 +39,7 @@
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 </div>
-<div ng-show="{{showStudentNoThesis}}">
+<div ng-show="showStudentNoThesis">
   <div class="card-columns">
       <div class="card" ng-repeat="caffein in nonstop_thesis">
           <div class="card-body">
@@ -50,11 +52,26 @@
           </div>
           <div class="card-footer">
             <p class="card-text"><small class="text-muted">{{caffein.creation_ts*1000 | date: 'dd.MM.yyyy'}} |
-                <a href="https://www.google.com/maps/search/{{caffein.univ_address}}" target="_blank">записатись</a></small></p>
+                <a href="#" ng-click="onSubmitEnrol(caffein.thesis_name)">записатись</a></small></p>
           </div>
       </div>
   </div>
 </div>
-<div ng-show="{{showStudentThesis}}">
-    You are enrolled in the thesis.
+<div ng-show="showStudentThesis">
+    <div class="card-columns">
+      <div class="card" ng-repeat="caffein in nonstop_thesis_my">
+          <div class="card-body">
+            <h5 class="card-title">{{caffein.thesis_name}}</h5>
+            <p class="card-text">
+                <span style="color:{{caffein.difficulty>3?'orange':'green'}};">Складність: {{caffein.difficulty}}</span><br/>
+                <span>Рік: {{caffein.year}}</span><br/>
+                {{caffein.description}}
+            </p>
+          </div>
+          <div class="card-footer">
+            <p class="card-text"><small class="text-muted">{{caffein.creation_ts*1000 | date: 'dd.MM.yyyy'}} |
+                you are enrolled in the thesis</small></p>
+          </div>
+      </div>
+  </div>
 </div>

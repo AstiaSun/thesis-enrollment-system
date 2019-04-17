@@ -12,7 +12,7 @@ class DatabaseClient:
         self.users_cache = dict()
         self.sessions_cache = dict()
 
-    def cache_user(self, user) -> dict:
+    def cache_user(self, user):
         user.pop('password', None)
         user.pop('session_id', None)
 
@@ -58,4 +58,13 @@ class DatabaseClient:
                     keys_to_delete.append(key)
             for key in keys_to_delete:
                 del self.sessions_cache[key]
+        return True
+
+    def user_enrol_thesis(self, user_id, thesis_id):
+        query = {'_id': ObjectId(user_id)}
+        update = {'$set': {'thesis_id': thesis_id}}
+
+        self.users.find_one_and_update(query, update)
+        if user_id in self.users_cache:
+            self.users_cache[user_id]['thesis_id'] = thesis_id
         return True

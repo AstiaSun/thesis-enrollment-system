@@ -1,45 +1,52 @@
 angular.module('myApp')
   .controller('MainController', ['$scope', '$rootScope', '$http', function($scope, $rootScope, $http) {
-  $scope.showInstructor = $rootScope.user.role == 'instructor';
-  $scope.showStudent = $rootScope.user.role == 'student';
-  $scope.showStudentThesis = $scope.showStudent && $rootScope.user.thesis_id;
-  $scope.showStudentNoThesis = $scope.showStudent && !$rootScope.user.thesis_id;
 
   $scope.nonstop_thesis = [];
 
-  if($scope.showStudentNoThesis){
-    $http.get('/api/thesis/all').then(
-        function(response){
-            var data = response.data;
-            $scope.nonstop_thesis = data;
-            console.log(data);
-        },
-        function(){
-            console.log('error getting thesis data');
-        }
-    );
-  }
+    $scope.refreshAll = function(){
+    if(!$rootScope.user){
+        return $scope.requestdo();
+    }
+            $scope.showInstructor = $rootScope.user.role == 'instructor';
+            $scope.showStudent = $rootScope.user.role == 'student';
+            $scope.showStudentThesis = $scope.showStudent && $rootScope.user.thesis_id;
+            $scope.showStudentNoThesis = $scope.showStudent && !$rootScope.user.thesis_id;
+            $scope.my_thesis = $rootScope.user.thesis_id;
+            if($scope.showStudent){
+                $http.get('/api/thesis/all').then(
+                    function(response){
+                        var data = response.data;
+                        $scope.nonstop_thesis = data;
+                        $scope.nonstop_thesis_my = $scope.nonstop_thesis.filter(
+                            function(item){return item.thesis_name==$scope.my_thesis});
+                    },
+                    function(){
+                        console.log('error getting thesis data');
+                    }
+                );
+              }
+    }
 
+  $scope.requestdo = function(){
   $http.get('/api/user').then(
         function(response){
             var data = response.data;
             $rootScope.user = data;
             console.log(data);
-            $scope.showInstructor = $rootScope.user.role == 'instructor';
-            $scope.showStudent = $rootScope.user.role == 'student';
-            $scope.showStudentThesis = $scope.showStudent && $rootScope.user.thesis_id;
-            $scope.showStudentNoThesis = $scope.showStudent && !$rootScope.user.thesis_id;
+            $scope.refreshAll();
         },
         function(){
             console.log('error getting user data');
         }
-    );
+    );};
 
     $scope.thesis_name = '';
     $scope.description = '';
     $scope.year = '1';
     $scope.difficulty = '1';
     $scope.tags = '';
+    $scope.my_thesis = '';
+    $scope.nonstop_thesis_my = [];
 
     $scope.onSubmitAddThesis = function(){
         var data = {
@@ -56,6 +63,28 @@ angular.module('myApp')
             function(response){
                 console.log(response);
             }
-        )
+        );
     };
+
+    $scope.onSubmitEnrol = function(thesis_name){
+        var data = {
+            thesis_name: thesis_name
+        };
+        $scope.my_thesis = thesis_name;
+        $http.post('/api/thesis/enrol', data).then(
+            function(response){
+                console.log(response);
+                $scope.showStudentThesis = true;
+                $scope.showStudentNoThesis = false;
+
+                $rootScope.user = response.data;
+            console.log(data);
+            refreshAll();
+            },
+            function(response){
+                console.log(response);
+            }
+        );
+    };
+    $scope.requestdo();
   }]);
