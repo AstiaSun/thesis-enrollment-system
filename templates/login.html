@@ -3,20 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </head>
 <body>
-    <h2>Login</h2>
-    {% if error %}
-        Your credentials are wrong!
-    {% endif %}
-	<form action="/login" method="post">
-        <dl>
-            <dt>Email:</dt>
-            <dd><input type="text" name="email"></dd>
-            <dt>Password:</dt>
-            <dd><input type="password" name="password"></dd>
-        </dl>
-        <input type="submit" value="Login">
+    <br/>
+	<form class="col-sm-4" action="/login" method="post">
+        <h2>Login</h2>
+        {% if error %}
+            <br/><span style="color:red;">Your credentials are wrong!</span><br/>
+        {% endif %}<br/>
+        <div class="form-group">
+           <label for="email">Email:</label>
+           <input name="email" type="email" class="form-control" id="email" placeholder="john@doe.com">
+        </div>
+        <div class="form-group">
+           <label for="password">Password:</label>
+           <input name="password" type="password" class="form-control" id="password" placeholder="********">
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
 	</form>
 </body>
 </html>
