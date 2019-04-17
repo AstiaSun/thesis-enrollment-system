@@ -26,6 +26,9 @@ angular.module('myApp')
             $rootScope.user = data;
             console.log(data);
             $scope.showInstructor = $rootScope.user.role == 'instructor';
+            $scope.showStudent = $rootScope.user.role == 'student';
+            $scope.showStudentThesis = $scope.showStudent && $rootScope.user.thesis_id;
+            $scope.showStudentNoThesis = !$scope.showStudentThesis;
         },
         function(){
             console.log('error getting user data');
