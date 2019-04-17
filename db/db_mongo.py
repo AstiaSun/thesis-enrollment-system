@@ -1,5 +1,5 @@
 from bson.objectid import ObjectId
-from pymongo import MongoClient
+from pymongo import MongoClient, ReturnDocument
 
 import settings as s
 
@@ -64,7 +64,6 @@ class DatabaseClient:
         query = {'_id': ObjectId(user_id)}
         update = {'$set': {'thesis_id': thesis_id}}
 
-        self.users.find_one_and_update(query, update)
-        if user_id in self.users_cache:
-            self.users_cache[user_id]['thesis_id'] = thesis_id
+        user = self.users.find_one_and_update(query, update, return_document=ReturnDocument.AFTER)
+        self.cache_user(user)
         return True

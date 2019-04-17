@@ -7,6 +7,7 @@ angular.module('myApp')
     if(!$rootScope.user){
         return $scope.requestdo();
     }
+    console.log('Hello, thesis: ' + $rootScope.user.thesis_id);
             $scope.showInstructor = $rootScope.user.role == 'instructor';
             $scope.showStudent = $rootScope.user.role == 'student';
             $scope.showStudentThesis = $scope.showStudent && $rootScope.user.thesis_id;
@@ -73,13 +74,9 @@ angular.module('myApp')
         $scope.my_thesis = thesis_name;
         $http.post('/api/thesis/enrol', data).then(
             function(response){
-                console.log(response);
-                $scope.showStudentThesis = true;
-                $scope.showStudentNoThesis = false;
-
                 $rootScope.user = response.data;
-            console.log(data);
-            refreshAll();
+
+                $scope.requestdo();
             },
             function(response){
                 console.log(response);
