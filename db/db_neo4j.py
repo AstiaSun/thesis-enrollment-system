@@ -50,8 +50,7 @@ class Instructor:
         return instructor
 
     def add_thesis(self, client: GraphDatabaseClient, thesis_name,
-                   description, creation_ts, year, difficulty, requirements,
-                   status, tags):
+                   description, year, difficulty, tags):
         instructor = self.find(client)
         thesis = Node(
             'Thesis',
@@ -59,11 +58,8 @@ class Instructor:
             instructor_id=instructor.id,
             thesis_name=thesis_name,
             description=description,
-            creation_ts=creation_ts,
             year=year,
-            difficulty=difficulty,
-            requirements=requirements,
-            status=status
+            difficulty=difficulty
         )
         rel = Relationship(instructor, 'SUPERVISES', thesis)
         client.graph.create(rel)

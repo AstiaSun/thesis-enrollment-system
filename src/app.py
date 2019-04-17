@@ -9,6 +9,7 @@ from db.db_mongo import DatabaseClient
 import os
 import uuid
 import settings as s
+from db.db_neo4j import Instructor, GraphDatabaseClient
 
 template_folder = os.path.abspath('../templates')
 static_folder = os.path.abspath('../static')
@@ -19,6 +20,7 @@ CORS(app)
 app.config['SECRET_KEY'] = s.SECRET_KEY
 
 db = DatabaseClient()
+client = GraphDatabaseClient()
 
 
 def generate_id():
@@ -116,11 +118,31 @@ def loggedin():
     return 'Not authenticated'
 
 
-@app.route('/api/user')
 @api_authenticated()
+@app.route('/api/user')
 def api_user():
     user = get_current_user()
     return json.dumps(user)
+
+
+@api_authenticated()
+@app.route('/api/thesis/add', methods=['POST'])
+def add_thesis():
+    thesis_name = request.json['thesis_name']
+    description = request.json['description']
+    year = request.json['year']
+    difficulty = request.json['difficulty']
+    # status = request.form['status']
+    tags = request.json['tags'].split(',')
+    # score = request.form['score']
+    # student_info = request.form['student_info']
+    # creation_ts = request.form['creation_ts']
+    # student_enrol_ts = request.form['student_enrol_ts']
+    # update_ts = request.form['update_ts']
+
+    Instructor.add_thesis(client=client, thesis_name=thesis_name, description=description, year=year, difficulty=difficulty, tags=tags)
+
+    return 'kek!!!'
 
 
 @app.route('/')
