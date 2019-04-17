@@ -210,10 +210,11 @@ class Instructor:
         get all thesis for currect instructor
         :return: list of thesis
         """
-        query = f'MATCH (:{Instructor.node_type})-' \
-            f'[:{Relations.INSTRUCTOR_THESIS}]->(t:{Thesis.node_type}) ' \
+        query = f'MATCH (:{Instructor.node_type} ' + '{id: "' + self.id + '"}'+ ')-' \
+            f'[:{Relations.INSTRUCTOR_THESIS}]->(t:{Thesis.node_type})' \
             f'RETURN t'
-        return client.graph.run(query).data()
+        result = client.graph.run(query).data()
+        return list(map(lambda x: dict(x['t']), result))
 
     def delete_thesis(self, client: GraphDatabaseClient, thesis_name: str):
         """
