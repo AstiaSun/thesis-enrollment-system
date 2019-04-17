@@ -7,3 +7,9 @@ class ObjectExistsException(Exception):
 class IncorrectArgumentException(Exception):
     def __init__(self, message: str):
         super().__init__(message)
+
+
+class ObjectDoesNotExist(Exception):
+    def __init__(self, type_obj: str, params: dict):
+        super().__init__(f'Object <{type_obj}> with fields {params} dose not '
+                         f'exist in the database')

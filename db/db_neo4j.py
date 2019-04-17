@@ -4,7 +4,8 @@ from typing import Optional
 
 from py2neo import Graph, Node, Relationship, NodeMatcher
 
-from db.exceptions import ObjectExistsException, IncorrectArgumentException
+from db.exceptions import ObjectExistsException, IncorrectArgumentException, \
+    ObjectDoesNotExist
 from settings import NEO4J_HOSTNAME, NEO4J_USER, NEO4J_PORT, NEO4J_PASSWORD
 
 
@@ -42,6 +43,18 @@ class UniversityYear:
     BACHELOR_FOURTH = 4
     MASTER_FIRST = 5
     MASTER_SECOND = 6
+
+
+class Degree:
+    BACHELOR = 'bachelor'
+    MASTER = 'master'
+
+
+class Relations:
+    DEPARTMENT_GROUP = 'CONSISTS_OF'
+    GROUP_DEPARTMENT = 'BELONGS_TO'
+    THESIS_INSTRUCTOR = 'IS_SUPERVISED'
+    INSTRUCTOR_THESIS = 'SUPERVISES'
 
 
 class Instructor:
@@ -85,7 +98,7 @@ class Instructor:
 class Thesis:
     node_type = 'Thesis'
 
-    def __init__(self, thesis_name: str, description: str,
+    def __init__(self, thesis_name: str, description: str, instructor_id: int,
                  year: int, difficulty: int, tags: Optional[list] = None,
                  score: Optional[float] = None,
                  student_info: Optional[dict] = None,
@@ -111,6 +124,7 @@ class Thesis:
         student has enrolled for the thesis
         """
         self.student_id = student_id
+        self.instructor_id = instructor_id
         self.name = thesis_name
         self.description = description
         if 1 > year > 6:
@@ -132,7 +146,8 @@ class Thesis:
 
     def to_dict(self) -> dict:
         fields_values = {key: value for key, value in vars(self).items()
-                         if key[:2] != '__' and key != 'node_type' and value}
+                         if key[:2] != '__' and key not in
+                         ['node_type', 'instructor_id'] and value}
         return fields_values
 
     def find(self, client: GraphDatabaseClient):
@@ -140,9 +155,90 @@ class Thesis:
         return thesis
 
     def create(self, client: GraphDatabaseClient):
+        instructor = client.find_one(Instructor.node_type,
+                                     {'id': self.instructor_id})
+        if instructor is None:
+            raise ObjectDoesNotExist(Instructor.node_type,
+                                     {'id': self.instructor_id})
         if self.find(client) is None:
             thesis_node = Node(self.node_type)
             thesis_node.update(self.to_dict())
             client.graph.create(thesis_node)
+            rel = Relationship(instructor, Relations.INSTRUCTOR_THESIS,
+                               thesis_node)
+            client.graph.create(rel)
+            rel = Relationship(thesis_node, Relations.THESIS_INSTRUCTOR,
+                               instructor)
+            client.graph.create(rel)
+        else:
+            raise ObjectExistsException(self.node_type, self.to_dict())
+
+
+class Group:
+    node_type = 'Group'
+
+    def __init__(self, name: str, department_id: int, year: int, degree: str):
+        self.name = name
+        self.department_id = department_id
+        print(1 > year > 6)
+        if 1 > year > 6:
+            raise IncorrectArgumentException(
+                'Group: "year" field must be in range [1, 6]')
+        self.year = year
+        if not(degree == Degree.BACHELOR or degree == Degree.MASTER):
+            raise IncorrectArgumentException(
+                f'Group: "degree" field must be in range [{Degree.BACHELOR},'
+                f' {Degree.MASTER}]')
+        self.degree = degree
+
+    def to_dict(self) -> dict:
+        fields_values = {key: value for key, value in vars(self).items()
+                         if key[:2] != '__' and key not in
+                         ['node_type', 'department_id'] and value}
+        return fields_values
+
+    def create(self, client: GraphDatabaseClient):
+        params = {'department_id': self.department_id}
+        department = client.find_one(Department.node_type, params)
+        if department is None:
+            raise ObjectDoesNotExist(Department.node_type, params)
+        if client.find_one(self.node_type, self.to_dict()) is None:
+            group = Node(self.node_type)
+            group.update(self.to_dict())
+            client.graph.create(group)
+            rel = Relationship(department, Relations.DEPARTMENT_GROUP, group)
+            client.graph.create(rel)
+            rel = Relationship(group, Relations.GROUP_DEPARTMENT, department)
+            client.graph.create(rel)
+        else:
+            raise ObjectExistsException(self.node_type, self.to_dict())
+
+
+class Department:
+    node_type = 'Department'
+
+    def __init__(self, department_id: int, name: str, faculty: str, enrol_ts: Optional[int] = None,
+                 predefence_ts: Optional[int] = None,
+                 defence_ts: Optional[int] = None):
+        self.department_id = department_id
+        self.name = name
+        self.faculty = faculty
+        if enrol_ts is not None:
+            self.enrol_ts = enrol_ts
+        if predefence_ts is not None:
+            self.predefence_ts = predefence_ts
+        if defence_ts is not None:
+            self.defence_ts = defence_ts
+
+    def to_dict(self) -> dict:
+        fields_values = {key: value for key, value in vars(self).items()
+                         if key[:2] != '__' and key != 'node_type' and value}
+        return fields_values
+
+    def create(self, client: GraphDatabaseClient):
+        if client.find_one(self.node_type, self.to_dict()) is None:
+            node = Node(self.node_type)
+            node.update(self.to_dict())
+            client.graph.create(node)
         else:
             raise ObjectExistsException(self.node_type, self.to_dict())
