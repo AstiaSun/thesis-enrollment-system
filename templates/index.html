@@ -28,16 +28,21 @@ app.config(function($routeProvider){
     templateUrl: 'static/main.html',
     controller: 'MainController'
   })
+  .when('/profile', {
+    templateUrl: 'static/profile.html',
+    controller: 'ProfileController'
+  })
 });
 </script>
 <script src="static/controllers/mainController.js"></script>
 <script src="static/controllers/headerController.js"></script>
+<script src="static/controllers/profileController.js"></script>
 
 {% raw %}
 
 <div> <!--ng-controller="HeaderController as header"-->
     <br/>
-    <b>&nbsp;&nbsp;{{user.first_name}} {{user.last_name}}</b><span style="float:right;"><a href="/logout">Logout</a>&nbsp;&nbsp;</span>
+    <b>&nbsp;&nbsp;{{user.first_name}} {{user.last_name}}</b>&nbsp;&nbsp;<a href="#!profile">edit</a><span style="float:right;"><a href="/logout">Logout</a>&nbsp;&nbsp;</span>
 <hr/>
 </div>
 <br/>

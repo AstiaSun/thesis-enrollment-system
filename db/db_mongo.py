@@ -67,3 +67,11 @@ class DatabaseClient:
         user = self.users.find_one_and_update(query, update, return_document=ReturnDocument.AFTER)
         self.cache_user(user)
         return True
+
+    def user_profile_update(self, user_id, params):
+        query = {'_id': ObjectId(user_id)}
+        update = {'$set': params}
+
+        user = self.users.find_one_and_update(query, update, return_document=ReturnDocument.AFTER)
+        self.cache_user(user)
+        return user

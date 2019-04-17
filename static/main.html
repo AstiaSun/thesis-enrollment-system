@@ -1,6 +1,20 @@
-
 <div ng-show="showInstructor">
-    {{global.user}} {{showInstructor}} {{showStudent}} {{showStudentNoThesis}} {{showStudentThesis}}
+    <div class="card-columns">
+      <div class="card" ng-repeat="caffein2 in nonstop_thesis_in">
+          <div class="card-body">
+            <h5 class="card-title">{{caffein2.thesis_name}}</h5>
+            <p class="card-text">
+                <span style="color:{{caffein2.difficulty>3?'orange':'green'}};">Складність: {{caffein2.difficulty}}</span><br/>
+                <span>Рік: {{caffein2.year}}</span><br/>
+                {{caffein2.description}}
+            </p>
+          </div>
+          <div class="card-footer">
+            <p class="card-text"><small class="text-muted">{{caffein2.creation_ts*1000 | date: 'dd.MM.yyyy'}} |
+                <a href="#" ng-click="onDeleteThesis(caffein2.thesis_name)">delete</a></small></p>
+          </div>
+      </div>
+  </div>
     <form class="col-sm-4" ng-submit="onSubmitAddThesis()">
       <div class="form-group">
         <label for="thesis_name">Thesis name:</label>
@@ -52,7 +66,7 @@
           </div>
           <div class="card-footer">
             <p class="card-text"><small class="text-muted">{{caffein.creation_ts*1000 | date: 'dd.MM.yyyy'}} |
-                <a href="#" ng-click="onSubmitEnrol(caffein.thesis_name)">записатись</a></small></p>
+                <a href="#" ng-click="onSubmitEnrol(caffein.thesis_name)">enroll</a></small></p>
           </div>
       </div>
   </div>

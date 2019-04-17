@@ -1,4 +1,5 @@
 angular.module('myApp')
-  .controller('HeaderController', ['$scope', function($scope) {
+  .controller('HeaderController', ['$scope', '$location', function($scope, $location) {
     $scope.name = 'KekHub';
+    $scope.location = $location;
   }]);

@@ -135,6 +135,71 @@ def enrol_thesis():
     return json.dumps(user)
 
 
+@app.route('/api/thesis/by_instructor')
+def get_thesis_by_instructor():
+    allowed_roles = ['instructor']
+    user = get_current_user()
+
+    if not user:
+        return abort(403)
+
+    if allowed_roles and user['role'] not in allowed_roles:
+        return abort(403)
+
+    instructor_id = request.args['instructor_id']
+    print(instructor_id)
+    result = Instructor(instructor_id).get_thesis(client)
+    print(result)
+    return json.dumps(result)
+
+
+@app.route('/api/thesis/drop_by_id', methods=['POST'])
+def drop_thesis_by_id():
+    allowed_roles = ['instructor']
+    user = get_current_user()
+
+    if not user:
+        return abort(403)
+
+    if allowed_roles and user['role'] not in allowed_roles:
+        return abort(403)
+
+    instructor_id = request.json['instructor_id']
+    thesis_id = request.json['thesis_id']
+    print(thesis_id)
+    print(instructor_id)
+    Instructor(instructor_id).delete_thesis(client, thesis_id)
+    return 'OK'
+
+
+@app.route('/api/profile/update', methods=['POST'])
+def update_profile():
+    user = get_current_user()
+
+    if not user:
+        return abort(403)
+
+    first_name = request.json['first_name']
+    middle_name = request.json['middle_name']
+    last_name = request.json['last_name']
+    email = request.json['email']
+    password = request.json.get('password', None)
+
+    data = {
+        'first_name': first_name,
+        'middle_name': middle_name,
+        'last_name': last_name,
+        'email': email,
+    }
+    print('profile update')
+    print(data)
+    if password:
+        data['password'] = password
+
+    user = db.user_profile_update(user['_id'], data)
+    return json.dumps(user)
+
+
 @app.route('/api/thesis/add', methods=['POST'])
 def add_thesis():
     allowed_roles = ['instructor']
