@@ -125,7 +125,7 @@ def api_user():
     return json.dumps(user)
 
 
-@api_authenticated()
+@api_authenticated(allowed_roles=['instructor'])
 @app.route('/api/thesis/add', methods=['POST'])
 def add_thesis():
     thesis_name = request.json['thesis_name']
@@ -140,7 +140,8 @@ def add_thesis():
     # student_enrol_ts = request.form['student_enrol_ts']
     # update_ts = request.form['update_ts']
 
-    Instructor.add_thesis(client=client, thesis_name=thesis_name, description=description, year=year, difficulty=difficulty, tags=tags)
+    user = get_current_user()
+    Instructor.add_thesis(user['_id'], client=client, thesis_name=thesis_name, description=description, year=year, difficulty=difficulty, tags=tags)
 
     return 'kek!!!'
 
