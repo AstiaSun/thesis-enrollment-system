@@ -1,7 +1,7 @@
 import json
 import logging
 
-from flask import Flask, Response, request, render_template, session, redirect, url_for
+from flask import Flask, Response, request, render_template, session, redirect, url_for, abort
 from flask_cors import CORS
 
 from db.db_mongo import DatabaseClient
@@ -11,11 +11,12 @@ import uuid
 import settings as s
 
 template_folder = os.path.abspath('../templates')
-app = Flask(__name__, template_folder=template_folder)
+static_folder = os.path.abspath('../static')
+
+app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 CORS(app)
 
 app.config['SECRET_KEY'] = s.SECRET_KEY
-
 
 db = DatabaseClient()
 
@@ -49,7 +50,7 @@ def authenticated(allowed_roles=None):
     def decorator(function):
         def wrapper(*args, **kwargs):
             user = get_current_user()
-            print(user)
+
             if not user:
                 return redirect('/login')
 
@@ -58,7 +59,28 @@ def authenticated(allowed_roles=None):
 
             result = function(*args, **kwargs)
             return result
+
         return wrapper
+
+    return decorator
+
+
+def api_authenticated(allowed_roles=None):
+    def decorator(function):
+        def wrapper2(*args, **kwargs):
+            user = get_current_user()
+
+            if not user:
+                return abort(403)
+
+            if allowed_roles and user['role'] not in allowed_roles:
+                return abort(403)
+
+            result = function(*args, **kwargs)
+            return result
+
+        return wrapper2
+
     return decorator
 
 
@@ -94,10 +116,29 @@ def loggedin():
     return 'Not authenticated'
 
 
+@app.route('/api/user')
+@api_authenticated()
+def api_user():
+    user = get_current_user()
+    return json.dumps(user)
+
+
 @app.route('/')
 @authenticated()
 def main():
-    return 'IPO is coming...'
+    user = get_current_user()
+
+    return render_template('index.html', user=user)
+
+
+@app.errorhandler(404)
+def on_notfound(e):
+    user = get_current_user()
+
+    if not user:
+        return '404'
+    else:
+        return render_template('index.html', user=user)
 
 
 if __name__ == '__main__':

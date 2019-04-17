@@ -10,12 +10,20 @@ class DatabaseClient:
         self.users_cache = dict()
         self.sessions_cache = dict()
 
+    def cache_user(self, user):
+        del user['password']
+        del user['session_id']
+
+        user['_id'] = str(user['_id'])
+
+        self.users_cache[user['_id']] = user
+
     def user_check_password(self, email, password):
         query = {'email': email, 'password': password}
 
         user = self.users.find_one(query)
         if user:
-            self.users_cache[user['_id']] = user
+            self.cache_user(user)
         return user
 
     def user_check_session(self, session_id):
@@ -30,6 +38,8 @@ class DatabaseClient:
 
         query = {'session_id': session_id}
         user = self.users.find_one(query)
+        if user:
+            self.cache_user(user)
         return user
 
     def user_write_session(self, user_id, session_id):
