@@ -142,6 +142,16 @@ class Thesis:
         else:
             raise ObjectExistsException(self.node_type, self.to_dict())
 
+    @staticmethod
+    def thesis_enrol(client: GraphDatabaseClient, thesis_name: str, student_id):
+        thesis = client.find_one(Thesis.node_type, {'thesis_name': thesis_name})
+        if thesis is None:
+            raise ObjectDoesNotExist(Thesis.node_type, {'thesis_name': thesis_name})
+        thesis['student_id'] = student_id
+        thesis['student_enrol_ts'] = datetime.now().timestamp()
+        thesis['update_ts'] = thesis['student_enrol_ts']
+        client.graph.push(thesis)
+
 
 class Instructor:
     node_type = 'Instructor'
@@ -198,6 +208,7 @@ class Group:
     node_type = 'Group'
 
     def __init__(self, name: str, year: int, degree: str):
+        self.id = str(uuid.uuid4())
         self.name = name
         print(1 > year > 6)
         if 1 > year > 6:

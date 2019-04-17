@@ -38,8 +38,10 @@ def test_create_thesis(database):
 
 
 def test_create_instructor(database):
-    i = Instructor(str(uuid.uuid4()) ,Degree.PROFESSOR, 12, '213')
-    i.create(database, '123')
+    obj = database.find_one(Department.node_type, {'name': 'Informatics'})
+    assert obj
+    i = Instructor('5cb673e70d34e12dab8cd206', Degree.PROFESSOR, 12, '213')
+    i.create(database, obj['department_id'])
     result = database.find_one(i.node_type, i.to_dict())
     assert result
 
@@ -62,3 +64,8 @@ def test_create_group(database):
     g.create(database, '123')
     result = database.find_one(g.node_type, g.to_dict())
     assert result
+
+
+def test_enrol(database):
+    name = 'Lorem Ipsum'
+    Thesis.thesis_enrol(database, name, '5cb673e70d34e12dab8cd206')
